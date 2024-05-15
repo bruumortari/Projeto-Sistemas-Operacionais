@@ -3,7 +3,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class UserInterface implements SubmissionInterface, NotificationInterface {
-    @Override
     public boolean submitJob(String fileName) {
         /*
          * Ao receber a solicitação de submissão de um programa, o simulador deve criar
@@ -41,7 +40,6 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
         return true;
     }
 
-    @Override
     public void displaySubmissionQueue() {
         /*
          * Utilizada para solicitar a descrição da fila de processos submetidos ao
@@ -50,7 +48,6 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
          */
     }
 
-    @Override
     public void display(String info) {
         /*
          * Utilizada pelos escalonadores de curto e longo prazo para notificar qualquer
