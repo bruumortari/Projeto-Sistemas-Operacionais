@@ -3,6 +3,10 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class UserInterface implements SubmissionInterface, NotificationInterface {
+
+    // Lista de prontos
+    List<Process> submissionQueue = new ArrayList<>();
+
     public boolean submitJob(String fileName) {
         /*
          * Ao receber a solicitação de submissão de um programa, o simulador deve criar
@@ -19,10 +23,9 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
         else {
             try {
                 /*
-                 * Definição de variáveis e da fila de processos a serem admitidos no
+                 * Definição da fila de processos a serem admitidos no
                  * sistema(submissionQueue)
                  */
-                List<Process> submissionQueue = new ArrayList<>();
 
                 // Criar um ProcessBuilder
                 ProcessBuilder pb = new ProcessBuilder();
@@ -32,8 +35,9 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
 
                 // Colocar o processo criado na fila de submissionQueue
                 submissionQueue.add(process);
+
             } catch (IOException io) {
-                System.err.println("Ocorreu um erro de I/O: " + io.getMessage());
+                System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
             }
 
         }
@@ -46,6 +50,12 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
          * escalonador de longo prazo, mas ainda não encaminhados ao escalonador de
          * curto prazo.
          */
+
+        System.out.println("\nFila de prontos");
+        for(Process process : submissionQueue) {
+            System.out.println("Process: " + process);
+            System.out.println("Process id: " + process.pid());
+         }
     }
 
     public void display(String info) {

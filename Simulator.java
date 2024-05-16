@@ -7,7 +7,11 @@ public class Simulator {
         }
 
         else {
-            int carga_max = Integer.parseInt(args[0]);
+            try {
+                int maxLoad = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                System.err.println("Ocorreu um erro de na formatacao de args: " + e.getMessage());
+            }
         }
     }
 }
