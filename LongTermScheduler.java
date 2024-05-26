@@ -25,7 +25,7 @@ public class LongTermScheduler implements SubmissionInterface, InterSchedulerInt
      * Utilizada para obter a carga atual de processos no escalonador de curto prazo.
      */
 
-        int i = 1;
-        return i;
+     int i = 1;
+     return i;
     }
 }

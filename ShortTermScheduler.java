@@ -1,4 +1,19 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class ShortTermScheduler implements ControlInterface, InterSchedulerInterface {
+
+    // Lista de prontos
+    List<Process> submissionQueue = new ArrayList<>();
+    // Lista de bloqueados
+    List<Process> blockedQueue = new ArrayList<>();
+    // Lista de terminados
+    List<Process> finishedQueue = new ArrayList<>();
+    //Lista de processos em execucao
+    List<Process> execQueue = new ArrayList<>();
+
+    int quantum  = 200;
+
     public void startSimulation() {
     /*
      * Utilizada para iniciar a simulação. A partir da invocação desta operação,
@@ -19,6 +34,8 @@ public class ShortTermScheduler implements ControlInterface, InterSchedulerInter
      * 
      * A simulação termina quando não houver mais processos prontos ou bloqueados para execução.
      */
+
+  
 
     }
 
@@ -48,6 +65,30 @@ public class ShortTermScheduler implements ControlInterface, InterSchedulerInter
      * Utilizada para solicitar a descrição das informações sobre todos os processos no escalonador
      * de curto prazo (processo em execução, processos prontos, processos bloqueados e processos terminados).
      */
+
+     System.out.println("\nFila de processos em execucao");
+     for(Process process : execQueue) {
+         System.out.println("Process: " + process);
+         System.out.println("Process id: " + process.pid());
+      }
+
+    System.out.println("\nFila de prontos");
+    for(Process process : submissionQueue) {
+        System.out.println("Process: " + process);
+        System.out.println("Process id: " + process.pid());
+     }
+
+     System.out.println("\nFila de bloqueados");
+     for(Process process : blockedQueue) {
+         System.out.println("Process: " + process);
+         System.out.println("Process id: " + process.pid());
+      }
+
+      System.out.println("\nFila de terminados");
+      for(Process process : finishedQueue) {
+          System.out.println("Process: " + process);
+          System.out.println("Process id: " + process.pid());
+       }
     }
 
     public void addProcess(Process bcp) {
@@ -61,8 +102,8 @@ public class ShortTermScheduler implements ControlInterface, InterSchedulerInter
     /*
      * Utilizada para obter a carga atual de processos no escalonador de curto prazo.
      */
-
-        int i = 1;
-        return i;
+        int load = 0;
+        load = execQueue.size();
+        return load;
     }
 }

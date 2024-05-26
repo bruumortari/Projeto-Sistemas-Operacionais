@@ -12,6 +12,6 @@ public class Simulator {
             } catch (NumberFormatException e) {
                 System.err.println("Ocorreu um erro de na formatacao de args: " + e.getMessage());
             }
-        }
+        } 
     }
 }

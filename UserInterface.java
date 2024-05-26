@@ -17,30 +17,35 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
          * escalonador de curto prazo de acordo com a carga de processos no mesmo.
          */
 
-        // Se o identificador do arquivo for inválido, retorna false
-        if (fileName == null)
+        try {
+            /*
+             * Definição da fila de processos a serem admitidos no
+             * sistema(submissionQueue)
+             */
+
+            // Criar um ProcessBuilder
+            ProcessBuilder pb = new ProcessBuilder(fileName);
+
+            // Iniciar o processo
+            Process process = pb.start();
+
+            // Colocar o processo criado na fila de submissionQueue
+            submissionQueue.add(process);
+
+        } catch (IOException io) {
+            System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
             return false;
-        else {
-            try {
-                /*
-                 * Definição da fila de processos a serem admitidos no
-                 * sistema(submissionQueue)
-                 */
-
-                // Criar um ProcessBuilder
-                ProcessBuilder pb = new ProcessBuilder();
-
-                // Iniciar o processo
-                Process process = pb.start();
-
-                // Colocar o processo criado na fila de submissionQueue
-                submissionQueue.add(process);
-
-            } catch (IOException io) {
-                System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
-            }
-
+        } catch (SecurityException se) {
+            System.err.println("Ocorreu um erro de seguranca: " + se.getMessage());
+            return false;
+        } catch (NullPointerException e) { // Se o comando fornecido for nulo
+            System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) { // Se o comando for uma string vazia.
+            System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
+            return false;
         }
+
         return true;
     }
 
@@ -52,17 +57,17 @@ public class UserInterface implements SubmissionInterface, NotificationInterface
          */
 
         System.out.println("\nFila de prontos");
-        for(Process process : submissionQueue) {
+        for (Process process : submissionQueue) {
             System.out.println("Process: " + process);
             System.out.println("Process id: " + process.pid());
-         }
+        }
     }
 
     public void display(String info) {
         /*
          * Utilizada pelos escalonadores de curto e longo prazo para notificar qualquer
-         * informação
-         * de interesse relacionada ao acompanhamento da simulação para o thread
+         * informação de interesse relacionada ao acompanhamento da simulação para o
+         * thread
          * UserInterface.
          */
     }
