@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.lang.Math;
 
-public class ShortTermScheduler implements ControlInterface, InterSchedulerInterface {
+public class ShortTermScheduler implements Runnable, ControlInterface, InterSchedulerInterface {
 
     // Lista de prontos
     List<Process> submissionQueue = new ArrayList<>();
@@ -15,6 +15,10 @@ public class ShortTermScheduler implements ControlInterface, InterSchedulerInter
 
     int quantum = 200;
     boolean isRunning = false;
+
+    public void run() {
+        startSimulation();
+    }
 
     public void startSimulation() {
         /*
@@ -79,7 +83,7 @@ public class ShortTermScheduler implements ControlInterface, InterSchedulerInter
                     try {
                         Thread.sleep(quantum);
                     } catch (InterruptedException ie) {
-                        System.err.println("A thread foi interrmpida: " + ie.getMessage());
+                        System.err.println("A thread foi interrompida: " + ie.getMessage());
                     }
                 } else {
                     execQueue.remove(currentProcess);

@@ -2,10 +2,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
-public class UserInterface implements SubmissionInterface, NotificationInterface {
+public class UserInterface implements Runnable, SubmissionInterface, NotificationInterface {
 
     // Lista de prontos
     List<Process> submissionQueue = new ArrayList<>();
+
+    public void run() {
+        
+    }
 
     public boolean submitJob(String fileName) {
         /*

@@ -2,11 +2,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LongTermScheduler implements SubmissionInterface, InterSchedulerInterface {
+public class LongTermScheduler implements Runnable, SubmissionInterface, InterSchedulerInterface {
 
     // Lista de prontos
     List<Process> submissionQueue = new ArrayList<>();
     List<Process> execQueue = new ArrayList<>();
+
+    public void run() {
+        
+    }
 
     public boolean submitJob(String fileName) {
         try {
