@@ -8,8 +8,15 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
     List<Process> submissionQueue = new ArrayList<>();
     List<Process> execQueue = new ArrayList<>();
 
+    // Variável que define a carga máxima
+    private int maxLoad;
+
     public void run() {
-        
+
+    }
+
+    public void maxLoad(int maxLoad) {
+        this.maxLoad = maxLoad;
     }
 
     public boolean submitJob(String fileName) {
@@ -25,8 +32,10 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
             // Iniciar o processo
             Process process = pb.start();
 
-            // Colocar o processo criado na fila de submissionQueue
-            submissionQueue.add(process);
+            if (submissionQueue.size() < maxLoad) {
+                // Colocar o processo criado na fila de submissionQueue
+                submissionQueue.add(process);
+            }
 
         } catch (IOException io) {
             System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
