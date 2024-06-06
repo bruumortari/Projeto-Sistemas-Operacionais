@@ -1,14 +1,17 @@
 import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
 
 public class UserInterface implements Runnable, SubmissionInterface, NotificationInterface {
 
-    // Lista de prontos
-    List<Process> submissionQueue = new ArrayList<>();
+    ShortTermScheduler sts = new ShortTermScheduler();
+
+    private int maxLoad;
+
+    public void maxLoad(int maxLoad) {
+        this.maxLoad = maxLoad;
+    }
 
     public void run() {
-        
+
     }
 
     public boolean submitJob(String fileName) {
@@ -33,8 +36,10 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
             // Iniciar o processo
             Process process = pb.start();
 
-            // Colocar o processo criado na fila de submissionQueue
-            submissionQueue.add(process);
+            if (sts.submissionQueue.size() < maxLoad) {
+                // Colocar o processo criado na fila de submissionQueue
+                sts.submissionQueue.add(process);
+            }
 
         } catch (IOException io) {
             System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
@@ -61,7 +66,7 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
          */
 
         System.out.println("\nFila de prontos");
-        for (Process process : submissionQueue) {
+        for (Process process : sts.submissionQueue) {
             System.out.println("Process: " + process);
             System.out.println("Process id: " + process.pid());
         }

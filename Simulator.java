@@ -1,23 +1,29 @@
 public class Simulator {
     public static void main(String[] args) {
 
-        // Verificar número de argumentos
-        if (args.length <= 0) {
-            System.out.println("Numero de argumentos precisa ser maior que 0!");
-        }
+        int maxLoad = 0;
 
-        else {
+        // Verificar número de argumentos
+        if (args.length > 0) {
             try {
-                int maxLoad = Integer.parseInt(args[0]);
+                maxLoad = Integer.parseInt(args[0]);
             } catch (NumberFormatException e) {
                 System.err.println("Ocorreu um erro de na formatacao de args: " + e.getMessage());
             }
+        }
+
+        else {
+            System.out.println("O valor de args deve ser maior que 0!");
         }
 
         // Criar instâncias de cada classe
         UserInterface userInterface = new UserInterface();
         LongTermScheduler longTermScheduler = new LongTermScheduler();
         ShortTermScheduler shortTermScheduler = new ShortTermScheduler();
+
+        // Passar a carga máxima para as classes
+        longTermScheduler.maxLoad(maxLoad);
+        userInterface.maxLoad(maxLoad);
 
         // Criar threads
         Thread userInterfaceThread = new Thread(userInterface);

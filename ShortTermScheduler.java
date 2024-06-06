@@ -56,9 +56,10 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
 
         while (isRunning) {
 
-            // Caso em que a fila de prontos e a fila de bloqueados estão vazias
-            if (submissionQueue.isEmpty() && blockedQueue.isEmpty()) {
-                System.out.println("Simulacao finalizada");
+            // Caso em que a fila de prontos, fila de bloqueados e a fila de execução estão
+            // vazias
+            if (submissionQueue.isEmpty() && blockedQueue.isEmpty() && execQueue.isEmpty()) {
+                stopSimulation();
                 break;
             }
 
@@ -67,15 +68,18 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                 currentProcess = submissionQueue.remove(0);
                 execQueue.add(currentProcess);
 
+                System.out.println("execute process %d" + currentProcess.pid());
+
                 // Simular a instrução 'execute' cronometrada com o quantum definido
                 try {
                     Thread.sleep(quantum);
                 } catch (InterruptedException ie) {
-                    System.err.println("A thread foi interrmpida: " + ie.getMessage());
+                    System.err.println("A thread foi interrompida: " + ie.getMessage());
                 }
 
                 // Depois da execução de 'execute', decidir próxima ação
                 if (Math.random() > 50) { // Chance de 50% do processo realizar operação de E/S e ser bloqueado
+                    System.out.println("block process %d" + currentProcess.pid());
                     execQueue.remove(currentProcess);
                     blockedQueue.add(currentProcess);
 
@@ -86,13 +90,15 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                         System.err.println("A thread foi interrompida: " + ie.getMessage());
                     }
                 } else {
+                    System.out.println("finish process %d" + currentProcess.pid());
                     execQueue.remove(currentProcess);
                     finishedQueue.add(currentProcess);
                 }
 
                 // Verificar fila de bloqueados
                 if (!blockedQueue.isEmpty()) {
-                    if (Math.random() > 50) { // Chance de 50% da operação de E/S ter terminadp
+                    if (Math.random() > 50) { // Chance de 50% da operação de E/S ter terminado
+                        System.out.println("unblock process %d" + currentProcess.pid());
                         blockedQueue.remove(currentProcess);
                         submissionQueue.add(currentProcess);
                     }
