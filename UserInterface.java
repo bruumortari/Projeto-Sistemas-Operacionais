@@ -1,8 +1,11 @@
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserInterface implements Runnable, SubmissionInterface, NotificationInterface {
 
-    ShortTermScheduler sts = new ShortTermScheduler();
+    // Lista de prontos
+    List<Process> submissionQueue = new ArrayList<>();
 
     private int maxLoad;
 
@@ -36,9 +39,9 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
             // Iniciar o processo
             Process process = pb.start();
 
-            if (sts.submissionQueue.size() < maxLoad) {
+            if (submissionQueue.size() < maxLoad) {
                 // Colocar o processo criado na fila de submissionQueue
-                sts.submissionQueue.add(process);
+                submissionQueue.add(process);
             }
 
         } catch (IOException io) {
@@ -66,7 +69,7 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
          */
 
         System.out.println("\nFila de prontos");
-        for (Process process : sts.submissionQueue) {
+        for (Process process : submissionQueue) {
             System.out.println("Process: " + process);
             System.out.println("Process id: " + process.pid());
         }

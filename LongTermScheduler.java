@@ -1,8 +1,13 @@
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LongTermScheduler implements Runnable, SubmissionInterface, InterSchedulerInterface {
 
-    ShortTermScheduler sts = new ShortTermScheduler();
+    // Lista de prontos
+    List<Process> submissionQueue = new ArrayList<>();
+    // Lista de exec
+    List<Process> execQueue = new ArrayList<>();
 
     // Variável que define a carga máxima
     private int maxLoad;
@@ -28,9 +33,9 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
             // Iniciar o processo
             Process process = pb.start();
 
-            if (sts.submissionQueue.size() < maxLoad) {
+            if (submissionQueue.size() < maxLoad) {
                 // Colocar o processo criado na fila de submissionQueue
-                sts.submissionQueue.add(process);
+                submissionQueue.add(process);
             }
 
         } catch (IOException io) {
@@ -58,7 +63,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
          */
 
         System.out.println("\nFila de prontos");
-        for (Process process : sts.submissionQueue) {
+        for (Process process : submissionQueue) {
             System.out.println("Process: " + process);
             System.out.println("Process id: " + process.pid());
         }
@@ -71,7 +76,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
          * Esta operação tem como parâmetro um objeto do tipo Process (a ser
          * definido);
          */
-        sts.submissionQueue.add(bcp);
+        execQueue.add(bcp);
 
     }
 
@@ -81,7 +86,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
          * prazo.
          */
         int load = 0;
-        load = sts.execQueue.size();
+        load = execQueue.size();
         return load;
     }
 }

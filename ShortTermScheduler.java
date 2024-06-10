@@ -178,7 +178,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * Esta operação tem como parâmetro um objeto do tipo Process (a ser
          * definido);
          */
-        submissionQueue.add(bcp);
+        execQueue.add(bcp);
     }
 
     public int getProcessLoad() {
