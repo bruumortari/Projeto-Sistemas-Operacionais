@@ -10,8 +10,6 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     List<Process> blockedQueue = new ArrayList<>();
     // Lista de terminados
     List<Process> finishedQueue = new ArrayList<>();
-    // Lista de processos em execucao
-    List<Process> execQueue = new ArrayList<>();
 
     int quantum = 200;
     boolean isRunning = false;
@@ -58,7 +56,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
 
             // Caso em que a fila de prontos, fila de bloqueados e a fila de execução estão
             // vazias
-            if (submissionQueue.isEmpty() && blockedQueue.isEmpty() && execQueue.isEmpty()) {
+            if (submissionQueue.isEmpty() && blockedQueue.isEmpty()) {
                 stopSimulation();
                 break;
             }
@@ -66,7 +64,6 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
             // Caso em que a fila de prontos não está vazia
             if (!submissionQueue.isEmpty()) {
                 currentProcess = submissionQueue.remove(0);
-                execQueue.add(currentProcess);
 
                 System.out.println("execute process %d" + currentProcess.pid());
 
@@ -78,9 +75,8 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                 }
 
                 // Depois da execução de 'execute', decidir próxima ação
-                if (Math.random() > 50) { // Chance de 50% do processo realizar operação de E/S e ser bloqueado
+                if (Math.random() * 101 > 50) { // Chance de 50% do processo realizar operação de E/S e ser bloqueado
                     System.out.println("block process %d" + currentProcess.pid());
-                    execQueue.remove(currentProcess);
                     blockedQueue.add(currentProcess);
 
                     // Simular tempo que o processo fica bloqueado com o quantum definido
@@ -91,13 +87,12 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     }
                 } else {
                     System.out.println("finish process %d" + currentProcess.pid());
-                    execQueue.remove(currentProcess);
                     finishedQueue.add(currentProcess);
                 }
 
                 // Verificar fila de bloqueados
                 if (!blockedQueue.isEmpty()) {
-                    if (Math.random() > 50) { // Chance de 50% da operação de E/S ter terminado
+                    if (Math.random() * 101 > 50) { // Chance de 50% da operação de E/S ter terminado
                         System.out.println("unblock process %d" + currentProcess.pid());
                         blockedQueue.remove(currentProcess);
                         submissionQueue.add(currentProcess);
@@ -134,7 +129,6 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
         isRunning = false;
         submissionQueue.clear();
         blockedQueue.clear();
-        execQueue.clear();
         finishedQueue.clear();
         System.out.println("Simulacao finalizada");
     }
@@ -146,13 +140,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * de curto prazo (processo em execução, processos prontos, processos
          * bloqueados e processos terminados).
          */
-
-        System.out.println("\nFila de processos em execucao");
-        for (Process process : execQueue) {
-            System.out.println("Process: " + process);
-            System.out.println("Process id: " + process.pid());
-        }
-
+       
         System.out.println("\nFila de prontos");
         for (Process process : submissionQueue) {
             System.out.println("Process: " + process);
@@ -178,7 +166,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * Esta operação tem como parâmetro um objeto do tipo Process (a ser
          * definido);
          */
-        execQueue.add(bcp);
+        submissionQueue.add(bcp);
     }
 
     public int getProcessLoad() {
@@ -187,7 +175,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * prazo.
          */
         int load = 0;
-        load = execQueue.size();
+        load = submissionQueue.size();
         return load;
     }
 }

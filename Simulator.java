@@ -23,7 +23,6 @@ public class Simulator {
 
         // Passar a carga máxima para as classes
         longTermScheduler.maxLoad(maxLoad);
-        userInterface.maxLoad(maxLoad);
 
         // Criar threads
         Thread userInterfaceThread = new Thread(userInterface);

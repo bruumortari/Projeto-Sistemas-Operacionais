@@ -1,16 +1,9 @@
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 public class UserInterface implements Runnable, SubmissionInterface, NotificationInterface {
 
-    // Lista de prontos
-    List<Process> submissionQueue = new ArrayList<>();
+    private LongTermScheduler longTermScheduler;
 
-    private int maxLoad;
-
-    public void maxLoad(int maxLoad) {
-        this.maxLoad = maxLoad;
+    public void setLongTermScheduler(LongTermScheduler lts) {
+        longTermScheduler = lts;
     }
 
     public void run() {
@@ -27,36 +20,7 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
          * escalonador de curto prazo de acordo com a carga de processos no mesmo.
          */
 
-        try {
-            /*
-             * Definição da fila de processos a serem admitidos no
-             * sistema(submissionQueue)
-             */
-
-            // Criar um ProcessBuilder
-            ProcessBuilder pb = new ProcessBuilder(fileName);
-
-            // Iniciar o processo
-            Process process = pb.start();
-
-            if (submissionQueue.size() < maxLoad) {
-                // Colocar o processo criado na fila de submissionQueue
-                submissionQueue.add(process);
-            }
-
-        } catch (IOException io) {
-            System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
-            return false;
-        } catch (SecurityException se) {
-            System.err.println("Ocorreu um erro de seguranca: " + se.getMessage());
-            return false;
-        } catch (NullPointerException e) { // Se o comando fornecido for nulo
-            System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
-            return false;
-        } catch (IllegalArgumentException e) { // Se o comando for uma string vazia.
-            System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
-            return false;
-        }
+        longTermScheduler.submitJob(fileName);
 
         return true;
     }
@@ -67,12 +31,7 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
          * escalonador de longo prazo, mas ainda não encaminhados ao escalonador de
          * curto prazo.
          */
-
-        System.out.println("\nFila de prontos");
-        for (Process process : submissionQueue) {
-            System.out.println("Process: " + process);
-            System.out.println("Process id: " + process.pid());
-        }
+        longTermScheduler.displaySubmissionQueue();
     }
 
     public void display(String info) {

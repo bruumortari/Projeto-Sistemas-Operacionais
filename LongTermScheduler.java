@@ -6,50 +6,54 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
 
     // Lista de prontos
     List<Process> submissionQueue = new ArrayList<>();
-    // Lista de exec
+    // Lista de processos em execucao
     List<Process> execQueue = new ArrayList<>();
+
+    private ShortTermScheduler shortTermScheduler;
 
     // Variável que define a carga máxima
     private int maxLoad;
 
     public void run() {
-
+        String process = "program.txt";
+        submitJob(process);
     }
 
     public void maxLoad(int maxLoad) {
         this.maxLoad = maxLoad;
     }
 
+    // Escalonar por prioridade
     public boolean submitJob(String fileName) {
-        try {
-            /*
-             * Definição da fila de processos a serem admitidos no
-             * sistema(submissionQueue)
-             */
+        while (submissionQueue.size() < maxLoad) {
+            try {
+                /*
+                 * Definição da fila de processos a serem admitidos no
+                 * sistema(submissionQueue)
+                 */
 
-            // Criar um ProcessBuilder
-            ProcessBuilder pb = new ProcessBuilder(fileName);
+                // Criar um ProcessBuilder
+                ProcessBuilder pb = new ProcessBuilder(fileName);
 
-            // Iniciar o processo
-            Process process = pb.start();
+                // Iniciar o processo
+                Process process = pb.start();
 
-            if (submissionQueue.size() < maxLoad) {
                 // Colocar o processo criado na fila de submissionQueue
                 submissionQueue.add(process);
-            }
 
-        } catch (IOException io) {
-            System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
-            return false;
-        } catch (SecurityException se) {
-            System.err.println("Ocorreu um erro de seguranca: " + se.getMessage());
-            return false;
-        } catch (NullPointerException e) { // Se o comando fornecido for nulo
-            System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
-            return false;
-        } catch (IllegalArgumentException e) { // Se o comando for uma string vazia.
-            System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
-            return false;
+            } catch (IOException io) {
+                System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
+                return false;
+            } catch (SecurityException se) {
+                System.err.println("Ocorreu um erro de seguranca: " + se.getMessage());
+                return false;
+            } catch (NullPointerException e) { // Se o comando fornecido for nulo
+                System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
+                return false;
+            } catch (IllegalArgumentException e) { // Se o comando for uma string vazia.
+                System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
+                return false;
+            }
         }
 
         return true;
@@ -76,7 +80,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
          * Esta operação tem como parâmetro um objeto do tipo Process (a ser
          * definido);
          */
-        execQueue.add(bcp);
+        shortTermScheduler.submissionQueue.add(bcp);
 
     }
 
@@ -85,8 +89,6 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
          * Utilizada para obter a carga atual de processos no escalonador de curto
          * prazo.
          */
-        int load = 0;
-        load = execQueue.size();
-        return load;
+        return shortTermScheduler.getProcessLoad();
     }
 }
