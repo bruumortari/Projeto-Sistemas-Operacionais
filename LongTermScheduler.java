@@ -6,24 +6,24 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
 
     // Lista de prontos
     List<Process> submissionQueue = new ArrayList<>();
-    // Lista de processos em execucao
-    List<Process> execQueue = new ArrayList<>();
 
     private ShortTermScheduler shortTermScheduler;
+
+    public void setShortTermScheduler(ShortTermScheduler sts) {
+        shortTermScheduler = sts;
+    }
 
     // Variável que define a carga máxima
     private int maxLoad;
 
     public void run() {
-        String process = "program.txt";
-        submitJob(process);
+ 
     }
 
     public void maxLoad(int maxLoad) {
         this.maxLoad = maxLoad;
     }
 
-    // Escalonar por prioridade
     public boolean submitJob(String fileName) {
         while (submissionQueue.size() < maxLoad) {
             try {
@@ -80,7 +80,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
          * Esta operação tem como parâmetro um objeto do tipo Process (a ser
          * definido);
          */
-        shortTermScheduler.submissionQueue.add(bcp);
+        submissionQueue.add(bcp);
 
     }
 

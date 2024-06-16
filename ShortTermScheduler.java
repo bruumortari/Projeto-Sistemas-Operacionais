@@ -1,20 +1,55 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.Math;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class ShortTermScheduler implements Runnable, ControlInterface, InterSchedulerInterface {
 
-    // Lista de prontos
-    List<Process> submissionQueue = new ArrayList<>();
+    private LongTermScheduler longTermScheduler;
+
+    public void setLongTermScheduler(LongTermScheduler lts) {
+        longTermScheduler = lts;
+    }
+
     // Lista de bloqueados
     List<Process> blockedQueue = new ArrayList<>();
     // Lista de terminados
     List<Process> finishedQueue = new ArrayList<>();
 
+    List<Program> programs = new ArrayList<>();
+
     int quantum = 200;
     boolean isRunning = false;
 
     public void run() {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("program1.txt"))) {
+            String line;
+            Program currentProgram = null;
+            boolean readingInstructions = false;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("program")) {
+                    String fileName = line.split(" ")[1];
+                    currentProgram = new Program(fileName);
+                    programs.add(currentProgram);
+                } else if (line.equals("begin")) {
+                    readingInstructions = true;
+                } else if (line.equals("end")) {
+                    readingInstructions = false;
+                } else if (readingInstructions && currentProgram != null) {
+                    currentProgram.addInstruction(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (Program program : programs) {
+            longTermScheduler.submitJob(program.getFileName());
+        }
         startSimulation();
     }
 
@@ -56,47 +91,39 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
 
             // Caso em que a fila de prontos, fila de bloqueados e a fila de execução estão
             // vazias
-            if (submissionQueue.isEmpty() && blockedQueue.isEmpty()) {
+            if (longTermScheduler.submissionQueue.isEmpty() && blockedQueue.isEmpty()) {
                 stopSimulation();
                 break;
             }
 
             // Caso em que a fila de prontos não está vazia
-            if (!submissionQueue.isEmpty()) {
-                currentProcess = submissionQueue.remove(0);
+            if (!longTermScheduler.submissionQueue.isEmpty()) {
+                for (Program program : programs) {
+                    currentProcess = longTermScheduler.submissionQueue.remove(0);
+                    System.out.println("Pid do processo: %d" + currentProcess.pid());
 
-                System.out.println("execute process %d" + currentProcess.pid());
-
-                // Simular a instrução 'execute' cronometrada com o quantum definido
-                try {
-                    Thread.sleep(quantum);
-                } catch (InterruptedException ie) {
-                    System.err.println("A thread foi interrompida: " + ie.getMessage());
-                }
-
-                // Depois da execução de 'execute', decidir próxima ação
-                if (Math.random() * 101 > 50) { // Chance de 50% do processo realizar operação de E/S e ser bloqueado
-                    System.out.println("block process %d" + currentProcess.pid());
-                    blockedQueue.add(currentProcess);
-
-                    // Simular tempo que o processo fica bloqueado com o quantum definido
-                    try {
-                        Thread.sleep(quantum);
-                    } catch (InterruptedException ie) {
-                        System.err.println("A thread foi interrompida: " + ie.getMessage());
+                    for (String instruction : program.getInstructions()) {
+                        if (instruction.equals("execute")) {
+                            // Simular a instrução 'execute' cronometrada com o quantum definido
+                            try {
+                                Thread.sleep(quantum);
+                            } catch (InterruptedException ie) {
+                                System.err.println("A thread foi interrompida: " + ie.getMessage());
+                            }
+                        } else if (instruction.startsWith("block")) {
+                            String[] parts = instruction.split(" ");
+                            int blockPeriod = Integer.parseInt(parts[1]);
+                            blockedQueue.add(currentProcess);
+                            // Simular a instrução 'block'
+                            try {
+                                Thread.sleep(quantum * blockPeriod);
+                            } catch (InterruptedException ie) {
+                                System.err.println("A thread foi interrompida: " + ie.getMessage());
+                            }
+                            blockedQueue.remove(currentProcess);
+                        }
                     }
-                } else {
-                    System.out.println("finish process %d" + currentProcess.pid());
-                    finishedQueue.add(currentProcess);
-                }
 
-                // Verificar fila de bloqueados
-                if (!blockedQueue.isEmpty()) {
-                    if (Math.random() * 101 > 50) { // Chance de 50% da operação de E/S ter terminado
-                        System.out.println("unblock process %d" + currentProcess.pid());
-                        blockedQueue.remove(currentProcess);
-                        submissionQueue.add(currentProcess);
-                    }
                 }
             }
         }
@@ -127,7 +154,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * Utilizada para encerrar definitivamente uma simulação.
          */
         isRunning = false;
-        submissionQueue.clear();
+        longTermScheduler.submissionQueue.clear();
         blockedQueue.clear();
         finishedQueue.clear();
         System.out.println("Simulacao finalizada");
@@ -140,9 +167,9 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * de curto prazo (processo em execução, processos prontos, processos
          * bloqueados e processos terminados).
          */
-       
+
         System.out.println("\nFila de prontos");
-        for (Process process : submissionQueue) {
+        for (Process process : longTermScheduler.submissionQueue) {
             System.out.println("Process: " + process);
             System.out.println("Process id: " + process.pid());
         }
@@ -166,7 +193,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * Esta operação tem como parâmetro um objeto do tipo Process (a ser
          * definido);
          */
-        submissionQueue.add(bcp);
+        longTermScheduler.submissionQueue.add(bcp);
     }
 
     public int getProcessLoad() {
@@ -175,7 +202,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
          * prazo.
          */
         int load = 0;
-        load = submissionQueue.size();
+        load = longTermScheduler.submissionQueue.size();
         return load;
     }
 }
