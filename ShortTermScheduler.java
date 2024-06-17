@@ -12,19 +12,25 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
         longTermScheduler = lts;
     }
 
-    // Lista de bloqueados
-    List<Process> blockedQueue = new ArrayList<>();
-    // Lista de terminados
-    List<Process> finishedQueue = new ArrayList<>();
+    Program currentProcess;
 
-    List<Program> programs = new ArrayList<>();
+    List<Program> blockedQueue = new ArrayList<>();
+
+    List<Program> readyQueue = new ArrayList<>();
+
+    List<Program> finishedQueue = new ArrayList<>();
 
     int quantum = 200;
     boolean isRunning = false;
 
     public void run() {
+        loadPrograms("program1.txt");
+        loadPrograms("program2.txt");
+        startSimulation();
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("program1.txt"))) {
+    public void loadPrograms(String fileName) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
             Program currentProgram = null;
             boolean readingInstructions = false;
@@ -32,9 +38,9 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (line.startsWith("program")) {
-                    String fileName = line.split(" ")[1];
-                    currentProgram = new Program(fileName);
-                    programs.add(currentProgram);
+                    String programName = line.split(" ")[1];
+                    currentProgram = new Program(programName);
+                    readyQueue.add(currentProgram);
                 } else if (line.equals("begin")) {
                     readingInstructions = true;
                 } else if (line.equals("end")) {
@@ -43,166 +49,88 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     currentProgram.addInstruction(line);
                 }
             }
+            System.out.println(currentProgram.getInstructions());
+            System.out.println(readyQueue);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        for (Program program : programs) {
-            longTermScheduler.submitJob(program.getFileName());
-        }
-        startSimulation();
     }
 
     public void startSimulation() {
-        /*
-         * Utilizada para iniciar a simulação. A partir da invocação desta
-         * operação,
-         * o simulador deve escolher um processo que esteja pronto para execução.
-         * 
-         * O simulador deve processar uma instrução por vez. Duas diferentes
-         * instruções são providas
-         * pela linguagem de definição de programas simulados: execute, a qual
-         * representa um burst de CPU
-         * (execução de um conjunto de instruções), e block, a qual representa um
-         * burst de CPU
-         * seguido de uma instrução de E/S (bloqueio).
-         * A execução de uma instrução execute deve ser realizada por meio de uma
-         * espera cronometrada.
-         * 
-         * Ao final de um quantum, o simulador deve proceder de acordo com a política
-         * de escalonamento implementada.
-         * A execução de uma instrução block deve ser realizada por meio de uma
-         * espera cronometrada,
-         * seguida do bloqueio do processo em execução por um determinado período
-         * (medido em quantum).
-         * 
-         * Ao final de cada quantum, o escalonador deverá verificar se algum dos
-         * processos bloqueados
-         * tornou-se disponível, tornando-o pronto para execução.
-         * 
-         * A simulação termina quando não houver mais processos prontos ou bloqueados
-         * para execução.
-         */
-
         isRunning = true;
-        Process currentProcess;
+        int count = 0;
 
-        while (isRunning) {
-
+        while (isRunning && count < readyQueue.size()) {
             // Caso em que a fila de prontos, fila de bloqueados e a fila de execução estão
             // vazias
-            if (longTermScheduler.submissionQueue.isEmpty() && blockedQueue.isEmpty()) {
+            if (readyQueue.isEmpty()) {
                 stopSimulation();
                 break;
             }
 
             // Caso em que a fila de prontos não está vazia
-            if (!longTermScheduler.submissionQueue.isEmpty()) {
-                for (Program program : programs) {
-                    currentProcess = longTermScheduler.submissionQueue.remove(0);
-                    System.out.println("Pid do processo: %d" + currentProcess.pid());
-
-                    for (String instruction : program.getInstructions()) {
+            else {
+                for (Program program : readyQueue) {
+                    count++;
+                    List<String> instructions = new ArrayList<>();
+                    instructions = program.getInstructions();
+                    for (String instruction : instructions) {
                         if (instruction.equals("execute")) {
-                            // Simular a instrução 'execute' cronometrada com o quantum definido
-                            try {
-                                Thread.sleep(quantum);
-                            } catch (InterruptedException ie) {
-                                System.err.println("A thread foi interrompida: " + ie.getMessage());
-                            }
-                        } else if (instruction.startsWith("block")) {
-                            String[] parts = instruction.split(" ");
-                            int blockPeriod = Integer.parseInt(parts[1]);
-                            blockedQueue.add(currentProcess);
-                            // Simular a instrução 'block'
-                            try {
-                                Thread.sleep(quantum * blockPeriod);
-                            } catch (InterruptedException ie) {
-                                System.err.println("A thread foi interrompida: " + ie.getMessage());
-                            }
-                            blockedQueue.remove(currentProcess);
+                            System.out.println("execute: " + program.getProgramName());
+                        } else {
+                            System.out.println("block: " + program.getProgramName());
                         }
                     }
-
                 }
             }
         }
-
     }
 
     public void suspendSimulation() {
-        /*
-         * Utilizada para interromper temporariamente a simulação.
-         * As informações sobre os processos em execução, prontos, bloqueados e
-         * terminados não devem ser alteradas.
-         */
         isRunning = false;
-        System.out.println("Simulacao suspensa");
+        System.out.println("Simulação suspensa");
     }
 
     public void resumeSimulation() {
-        /*
-         * Utilizada para continuar a simulação a partir do ponto em que ela foi
-         * interrompida temporariamente.
-         */
-        System.out.println("Simulacao retomada");
+        System.out.println("Simulação retomada");
         startSimulation();
     }
 
     public void stopSimulation() {
-        /*
-         * Utilizada para encerrar definitivamente uma simulação.
-         */
         isRunning = false;
         longTermScheduler.submissionQueue.clear();
         blockedQueue.clear();
         finishedQueue.clear();
-        System.out.println("Simulacao finalizada");
     }
 
     public void displayProcessQueues() {
-        /*
-         * Utilizada para solicitar a descrição das informações sobre todos os
-         * processos no escalonador
-         * de curto prazo (processo em execução, processos prontos, processos
-         * bloqueados e processos terminados).
-         */
-
         System.out.println("\nFila de prontos");
-        for (Process process : longTermScheduler.submissionQueue) {
-            System.out.println("Process: " + process);
-            System.out.println("Process id: " + process.pid());
+        synchronized (readyQueue) {
+            for (Program program : readyQueue) {
+                System.out.println("Process: " + program);
+            }
         }
 
         System.out.println("\nFila de bloqueados");
-        for (Process process : blockedQueue) {
-            System.out.println("Process: " + process);
-            System.out.println("Process id: " + process.pid());
+        synchronized (blockedQueue) {
+            for (Program program : blockedQueue) {
+                System.out.println("Process: " + program);
+            }
         }
 
         System.out.println("\nFila de terminados");
-        for (Process process : finishedQueue) {
-            System.out.println("Process: " + process);
-            System.out.println("Process id: " + process.pid());
+        synchronized (finishedQueue) {
+            for (Program program : finishedQueue) {
+                System.out.println("Process: " + program);
+            }
         }
     }
 
     public void addProcess(Process bcp) {
-        /*
-         * Utilizada para submeter um processo à execução.
-         * Esta operação tem como parâmetro um objeto do tipo Process (a ser
-         * definido);
-         */
         longTermScheduler.submissionQueue.add(bcp);
     }
 
     public int getProcessLoad() {
-        /*
-         * Utilizada para obter a carga atual de processos no escalonador de curto
-         * prazo.
-         */
-        int load = 0;
-        load = longTermScheduler.submissionQueue.size();
-        return load;
+        return longTermScheduler.submissionQueue.size();
     }
 }

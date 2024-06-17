@@ -17,7 +17,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
     private int maxLoad;
 
     public void run() {
- 
+    
     }
 
     public void maxLoad(int maxLoad) {

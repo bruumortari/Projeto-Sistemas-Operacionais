@@ -3,19 +3,6 @@ begin
 execute
 block 4
 execute
-execute
-execute
-execute
-execute
-execute
-execute
-execute
-block 2
-execute
-end
-program2 program1.txt
-begin
-execute
 block 2
 execute
 end
