@@ -12,12 +12,13 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
         longTermScheduler = lts;
     }
 
+    int count = 0;
+    String block;
+
     Program currentProcess;
 
     List<Program> blockedQueue = new ArrayList<>();
-
     List<Program> readyQueue = new ArrayList<>();
-
     List<Program> finishedQueue = new ArrayList<>();
 
     int quantum = 200;
@@ -58,30 +59,46 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
 
     public void startSimulation() {
         isRunning = true;
-        int count = 0;
 
-        while (isRunning && count < readyQueue.size()) {
-            // Caso em que a fila de prontos, fila de bloqueados e a fila de execução estão
-            // vazias
-            if (readyQueue.isEmpty()) {
+        while (isRunning && (!readyQueue.isEmpty() || !blockedQueue.isEmpty())) {
+            // Executa os programas prontos
+            executeReadyPrograms();
+
+            // Verifica se há programas bloqueados para desbloquear
+            checkBlockedPrograms(block, count);
+
+            // Se não houver mais programas prontos ou bloqueados, encerra a simulação
+            if (readyQueue.isEmpty() && blockedQueue.isEmpty()) {
                 stopSimulation();
-                break;
             }
+        }
+    }
 
-            // Caso em que a fila de prontos não está vazia
-            else {
-                for (Program program : readyQueue) {
-                    count++;
-                    List<String> instructions = new ArrayList<>();
-                    instructions = program.getInstructions();
-                    for (String instruction : instructions) {
-                        if (instruction.equals("execute")) {
-                            System.out.println("execute: " + program.getProgramName());
-                        } else {
-                            System.out.println("block: " + program.getProgramName());
-                        }
-                    }
+    private void executeReadyPrograms() {
+        for (Program program : readyQueue) {
+            List<String> instructions = program.getInstructions();
+            for (String instruction : instructions) {
+                if (instruction.equals("execute")) {
+                    System.out.println("execute: " + program.getProgramName());
+                } else {
+                    System.out.println("block: " + program.getProgramName());
+                    // Move o programa para a fila de bloqueados
+                    blockedQueue.add(program);
+                    block = instruction;
+                    break; // Sai do loop de instruções do programa atual
                 }
+                count++;
+            }
+        }
+    }
+
+    private void checkBlockedPrograms(String block, int count) {
+        for (Program program : blockedQueue) {
+            String[] aux = block.split(" ");
+            int num = Integer.valueOf(aux[1]);
+            if (count > num) {
+                readyQueue.add(program);
+                blockedQueue.remove(program);
             }
         }
     }
