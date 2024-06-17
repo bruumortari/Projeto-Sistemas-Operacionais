@@ -17,7 +17,9 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
     private int maxLoad;
 
     public void run() {
-    
+        shortTermScheduler.loadPrograms("program1.txt");
+        shortTermScheduler.loadPrograms("program2.txt");
+        shortTermScheduler.startSimulation();
     }
 
     public void maxLoad(int maxLoad) {

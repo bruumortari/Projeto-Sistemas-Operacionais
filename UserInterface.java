@@ -7,6 +7,7 @@ public class UserInterface implements Runnable, SubmissionInterface, Notificatio
     }
 
     public void run() {
+      
 
     }
 

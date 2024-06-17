@@ -12,7 +12,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
         longTermScheduler = lts;
     }
 
-    int count = 0;
+    int count = 0, aux = 0;
     String block;
 
     Program currentProcess;
@@ -25,9 +25,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     boolean isRunning = false;
 
     public void run() {
-        loadPrograms("program1.txt");
-        loadPrograms("program2.txt");
-        startSimulation();
+
     }
 
     public void loadPrograms(String fileName) {
@@ -50,8 +48,11 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     currentProgram.addInstruction(line);
                 }
             }
+            System.out.println();
+            System.out.println(currentProgram.getProgramName());
             System.out.println(currentProgram.getInstructions());
-            System.out.println(readyQueue);
+            System.out.println();
+            //System.out.println(readyQueue);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -60,12 +61,12 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     public void startSimulation() {
         isRunning = true;
 
-        while (isRunning && (!readyQueue.isEmpty() || !blockedQueue.isEmpty())) {
+        for (int i = 0; i < 2; i++) {
             // Executa os programas prontos
             executeReadyPrograms();
 
             // Verifica se há programas bloqueados para desbloquear
-            checkBlockedPrograms(block, count);
+            checkBlockedPrograms(block, aux);
 
             // Se não houver mais programas prontos ou bloqueados, encerra a simulação
             if (readyQueue.isEmpty() && blockedQueue.isEmpty()) {
@@ -85,22 +86,27 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     // Move o programa para a fila de bloqueados
                     blockedQueue.add(program);
                     block = instruction;
+                    count++;
+                    aux = count;
+                    count = 0;
                     break; // Sai do loop de instruções do programa atual
                 }
-                count++;
             }
         }
     }
 
     private void checkBlockedPrograms(String block, int count) {
-        for (Program program : blockedQueue) {
-            String[] aux = block.split(" ");
-            int num = Integer.valueOf(aux[1]);
-            if (count > num) {
-                readyQueue.add(program);
-                blockedQueue.remove(program);
+        if (!blockedQueue.isEmpty()) {
+            for (Program program : blockedQueue) {
+                String[] aux = block.split(" ");
+                int num = Integer.valueOf(aux[1]);
+                if (count > num) {
+                    readyQueue.add(program);
+                    blockedQueue.remove(program);
+                }
             }
         }
+
     }
 
     public void suspendSimulation() {
