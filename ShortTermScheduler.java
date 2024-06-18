@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class ShortTermScheduler implements Runnable, ControlInterface, InterSchedulerInterface {
-
     private LongTermScheduler longTermScheduler;
 
     public void setLongTermScheduler(LongTermScheduler lts) {
@@ -20,6 +19,9 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     List<Program> blockedQueue = new ArrayList<>();
     List<Program> readyQueue = new ArrayList<>();
     List<Program> finishedQueue = new ArrayList<>();
+
+    List<Integer> auxQueue = new ArrayList<>();
+    List<String> auxBlock = new ArrayList<>();
 
     int quantum = 200;
     boolean isRunning = false;
@@ -40,7 +42,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     String programName = line.split(" ")[1];
                     currentProgram = new Program(programName);
                     readyQueue.add(currentProgram);
-                    longTermScheduler.submitJob(currentProgram.getProgramName());
+                    // longTermScheduler.submitJob(currentProgram.getProgramName());
                 } else if (line.equals("begin")) {
                     readingInstructions = true;
                 } else if (line.equals("end")) {
@@ -62,18 +64,25 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     public void startSimulation() {
         isRunning = true;
 
-        for (int i = 0; i < 2; i++) {
+        while (isRunning) {
             // Executa os programas prontos
             executeReadyPrograms();
+            // System.out.println(blockedQueue);
+            // System.out.println(auxQueue);
+            // System.out.println(auxBlock);
 
-            // Verifica se há programas bloqueados para desbloquear
-            checkBlockedPrograms(block, aux);
+            for (int i = 0; i < blockedQueue.size(); i++) {
+                // Verifica se há programas bloqueados para desbloquear;
+                checkBlockedPrograms(auxQueue, auxBlock);
+            }
 
             // Se não houver mais programas prontos ou bloqueados, encerra a simulação
             if (readyQueue.isEmpty() && blockedQueue.isEmpty()) {
                 stopSimulation();
             }
+
         }
+
     }
 
     private void executeReadyPrograms() {
@@ -82,29 +91,36 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
             for (String instruction : instructions) {
                 if (instruction.equals("execute")) {
                     System.out.println("execute: " + program.getProgramName());
+                    count++;
                 } else {
                     System.out.println("block: " + program.getProgramName());
                     // Move o programa para a fila de bloqueados
                     blockedQueue.add(program);
-                    block = instruction;
-                    aux = count;
+                    auxBlock.add(instruction);
+                    count++;
+                    auxQueue.add(count);
                     count = 0;
                     break; // Sai do loop de instruções do programa atual
                 }
-                count++;
             }
         }
     }
 
-    private void checkBlockedPrograms(String block, int count) {
+    private void checkBlockedPrograms(List<Integer> auxQueue, List<String> auxBlock) {
+        int i = 0;
         if (!blockedQueue.isEmpty()) {
             for (Program program : blockedQueue) {
-                String[] aux = block.split(" ");
+                String[] aux = new String[0];
+                // System.out.print(auxBlock.get(i));
+                aux = auxBlock.get(i).split(" ");
+                // System.out.print(aux[1]);
                 int num = Integer.valueOf(aux[1]);
-                if (count > num) {
+                if (auxQueue.get(i) > num) {
                     readyQueue.add(program);
                     blockedQueue.remove(program);
                 }
+                i++;
+
             }
         }
 
@@ -125,6 +141,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
         longTermScheduler.submissionQueue.clear();
         blockedQueue.clear();
         finishedQueue.clear();
+        System.out.println("Simulacao finalizada");
     }
 
     public void displayProcessQueues() {
