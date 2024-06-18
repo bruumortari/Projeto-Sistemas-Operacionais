@@ -1,11 +1,22 @@
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class ShortTermScheduler implements Runnable, ControlInterface, InterSchedulerInterface {
     private LongTermScheduler longTermScheduler;
+
+     private JTextArea instructionTextArea;
+
+    // Método para receber o JTextArea da GUI
+    public void setInstructionTextArea(JTextArea textArea) {
+        this.instructionTextArea = textArea;
+    }
 
     public void setLongTermScheduler(LongTermScheduler lts) {
         longTermScheduler = lts;
@@ -19,6 +30,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     List<Program> blockedQueue = new ArrayList<>();
     List<Program> readyQueue = new ArrayList<>();
     List<Program> finishedQueue = new ArrayList<>();
+    List<Program> unblockQueue = new ArrayList<>();
 
     List<Integer> auxQueue = new ArrayList<>();
     List<String> auxBlock = new ArrayList<>();
@@ -29,6 +41,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     public void run() {
 
     }
+
 
     public void loadPrograms(String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
@@ -51,10 +64,10 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     currentProgram.addInstruction(line);
                 }
             }
-            System.out.println();
-            System.out.println(currentProgram.getProgramName());
-            System.out.println(currentProgram.getInstructions());
-            System.out.println();
+            //System.out.println();
+            //System.out.println(currentProgram.getProgramName());
+            //System.out.println(currentProgram.getInstructions());
+            //System.out.println();
             // System.out.println(readyQueue);
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,36 +77,37 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     public void startSimulation() {
         isRunning = true;
 
-        while (isRunning) {
-            // Executa os programas prontos
-            executeReadyPrograms();
-            // System.out.println(blockedQueue);
-            // System.out.println(auxQueue);
-            // System.out.println(auxBlock);
+        // Executa os programas prontos
+        executeReadyPrograms(readyQueue);
+        // System.out.println(blockedQueue);
+        // System.out.println(auxQueue);
+        // System.out.println(auxBlock);
 
-            for (int i = 0; i < blockedQueue.size(); i++) {
-                // Verifica se há programas bloqueados para desbloquear;
-                checkBlockedPrograms(auxQueue, auxBlock);
-            }
+        // Verifica se há programas bloqueados para desbloquear;
+        checkBlockedPrograms(auxQueue, auxBlock);
 
-            // Se não houver mais programas prontos ou bloqueados, encerra a simulação
-            if (readyQueue.isEmpty() && blockedQueue.isEmpty()) {
-                stopSimulation();
-            }
+        executeReadyPrograms(unblockQueue);
 
+        // Se não houver mais programas prontos ou bloqueados, encerra a simulação
+        if (readyQueue.isEmpty() && blockedQueue.isEmpty()) {
+            stopSimulation();
         }
 
     }
 
-    private void executeReadyPrograms() {
-        for (Program program : readyQueue) {
+    private void executeReadyPrograms(List<Program> queue) {
+        for (Program program : queue) {
             List<String> instructions = program.getInstructions();
             for (String instruction : instructions) {
                 if (instruction.equals("execute")) {
-                    System.out.println("execute: " + program.getProgramName());
+                    String message = "execute: " + program.getProgramName();
+                    writeToTextArea(message);
+                    //System.out.println("execute: " + program.getProgramName());
                     count++;
                 } else {
-                    System.out.println("block: " + program.getProgramName());
+                    //System.out.println("block: " + program.getProgramName());
+                    String message = "block: " + program.getProgramName();
+                    writeToTextArea(message);
                     // Move o programa para a fila de bloqueados
                     blockedQueue.add(program);
                     auxBlock.add(instruction);
@@ -106,6 +120,12 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
         }
     }
 
+    private void writeToTextArea(String message) {
+        if (instructionTextArea != null) {
+            instructionTextArea.append(message + "\n");
+        }
+    }
+
     private void checkBlockedPrograms(List<Integer> auxQueue, List<String> auxBlock) {
         int i = 0;
         if (!blockedQueue.isEmpty()) {
@@ -115,9 +135,11 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                 aux = auxBlock.get(i).split(" ");
                 // System.out.print(aux[1]);
                 int num = Integer.valueOf(aux[1]);
-                if (auxQueue.get(i) > num) {
-                    readyQueue.add(program);
-                    blockedQueue.remove(program);
+                // System.out.print(auxQueue.get(i));
+                // System.out.print(num);
+                if (auxQueue.get(i) <= num) {
+                    unblockQueue.add(program);
+                    // blockedQueue.remove(program);
                 }
                 i++;
 
@@ -174,4 +196,5 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
     public int getProcessLoad() {
         return longTermScheduler.submissionQueue.size();
     }
+
 }

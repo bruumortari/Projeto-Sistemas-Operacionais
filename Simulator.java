@@ -1,49 +1,91 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 public class Simulator {
-    public static void main(String[] args) {
+    private ShortTermScheduler shortTermScheduler;
+    private LongTermScheduler longTermScheduler;
 
-        int maxLoad = 0;
+    private JTextArea instructionTextArea;
 
-        // Verificar número de argumentos
-        if (args.length > 0) {
-            try {
-                maxLoad = Integer.parseInt(args[0]);
-            } catch (NumberFormatException e) {
-                System.err.println("Ocorreu um erro de na formatacao de args: " + e.getMessage());
-            }
-        }
+    public Simulator() {
+        // Create ShortTermScheduler and LongTermScheduler instances
+        shortTermScheduler = new ShortTermScheduler();
+        longTermScheduler = new LongTermScheduler();
 
-        else {
-            System.out.println("O valor de args deve ser maior que 0!");
-        }
-
-        // Criar instâncias de cada classe
-        UserInterface userInterface = new UserInterface();
-        LongTermScheduler longTermScheduler = new LongTermScheduler();
-        ShortTermScheduler shortTermScheduler = new ShortTermScheduler();
-
-        // Passar a carga máxima para as classes
-        longTermScheduler.maxLoad(maxLoad);
-        longTermScheduler.setShortTermScheduler(shortTermScheduler);
+        // Set LongTermScheduler instance to ShortTermScheduler
         shortTermScheduler.setLongTermScheduler(longTermScheduler);
 
-        // Criar threads
-        Thread userInterfaceThread = new Thread(userInterface);
-        Thread longTermThread = new Thread(longTermScheduler);
-        Thread shortTermThread = new Thread(shortTermScheduler);
+        // Create UI components
+        JFrame frame = new JFrame("Simulator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 300);
 
-        // Inicializar as threads
-        userInterfaceThread.start();
-        longTermThread.start();
-        shortTermThread.start();
+        JButton startButton = new JButton("Iniciar Simulação");
+        startButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startSimulation();
+            }
+        });
 
-        // Sincronizar as threads para que main aguarde o término de todas as threads
-        try {
-            longTermThread.join();
-            shortTermThread.join();
-            userInterfaceThread.join();
-        } catch (InterruptedException ie) {
-            System.err.println("A thread foi interrompida: " + ie.getMessage());
-        }
+        JButton stopButton = new JButton("Parar Simulação");
+        stopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                stopSimulation();
+            }
+        });
 
+        instructionTextArea = new JTextArea();
+        instructionTextArea.setEditable(false);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
+        buttonPanel.add(startButton);
+        buttonPanel.add(stopButton);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(buttonPanel, BorderLayout.NORTH);
+        panel.add(new JScrollPane(instructionTextArea), BorderLayout.CENTER);
+
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+
+    private void startSimulation() {
+        // Esvaziar as listas para não acumular
+        shortTermScheduler.readyQueue.clear();
+        shortTermScheduler.blockedQueue.clear();
+        shortTermScheduler.unblockQueue.clear();
+        // Iniciar a simulação em uma nova
+        Thread simulationThread = new Thread(() -> {
+            // Pass JTextArea to ShortTermScheduler
+            shortTermScheduler.setInstructionTextArea(instructionTextArea);
+            // Load programs
+            shortTermScheduler.loadPrograms("program1.txt");
+            shortTermScheduler.loadPrograms("program2.txt");
+            shortTermScheduler.loadPrograms("program3.txt");
+            // Start simulation
+            shortTermScheduler.startSimulation();
+        });
+        simulationThread.start();
+    }
+
+    private void stopSimulation() {
+        // Stop the simulation
+        shortTermScheduler.stopSimulation();
+
+        // Clear the instruction text area
+        instructionTextArea.setText("");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Simulator();
+            }
+        });
     }
 }
