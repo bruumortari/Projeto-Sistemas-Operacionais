@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +18,7 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
     public void run() {
         shortTermScheduler.loadPrograms("program1.txt");
         shortTermScheduler.loadPrograms("program2.txt");
+        shortTermScheduler.loadPrograms("program3.txt");
         shortTermScheduler.startSimulation();
     }
 
@@ -33,27 +33,15 @@ public class LongTermScheduler implements Runnable, SubmissionInterface, InterSc
                  * Definição da fila de processos a serem admitidos no
                  * sistema(submissionQueue)
                  */
+                // Cria um novo processo usando ProcessBuilder
+                ProcessBuilder processBuilder = new ProcessBuilder(fileName);
+                Process process = processBuilder.start();
 
-                // Criar um ProcessBuilder
-                ProcessBuilder pb = new ProcessBuilder(fileName);
-
-                // Iniciar o processo
-                Process process = pb.start();
-
-                // Colocar o processo criado na fila de submissionQueue
+                // Adiciona o processo à fila de submissão
                 submissionQueue.add(process);
 
-            } catch (IOException io) {
-                System.err.println("Ocorreu um erro de E/S: " + io.getMessage());
-                return false;
-            } catch (SecurityException se) {
-                System.err.println("Ocorreu um erro de seguranca: " + se.getMessage());
-                return false;
-            } catch (NullPointerException e) { // Se o comando fornecido for nulo
-                System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
-                return false;
-            } catch (IllegalArgumentException e) { // Se o comando for uma string vazia.
-                System.err.println("Ocorreu um erro com o comando fornecido: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
                 return false;
             }
         }

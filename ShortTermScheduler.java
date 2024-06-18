@@ -40,6 +40,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     String programName = line.split(" ")[1];
                     currentProgram = new Program(programName);
                     readyQueue.add(currentProgram);
+                    longTermScheduler.submitJob(currentProgram.getProgramName());
                 } else if (line.equals("begin")) {
                     readingInstructions = true;
                 } else if (line.equals("end")) {
@@ -52,7 +53,7 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
             System.out.println(currentProgram.getProgramName());
             System.out.println(currentProgram.getInstructions());
             System.out.println();
-            //System.out.println(readyQueue);
+            // System.out.println(readyQueue);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -86,11 +87,11 @@ public class ShortTermScheduler implements Runnable, ControlInterface, InterSche
                     // Move o programa para a fila de bloqueados
                     blockedQueue.add(program);
                     block = instruction;
-                    count++;
                     aux = count;
                     count = 0;
                     break; // Sai do loop de instruções do programa atual
                 }
+                count++;
             }
         }
     }

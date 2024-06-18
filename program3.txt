@@ -1,0 +1,6 @@
+program3 program3.txt
+begin
+execute
+execute
+execute
+end
